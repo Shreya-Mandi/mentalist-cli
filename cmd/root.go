@@ -17,12 +17,13 @@ import (
 	TODO
 
 [/] addition, sub, multiplication and division of 4,5, and 6 digits
-[ ] currency and metric system quick conversion problems
+[/] currency and metric system quick conversion problems
 [/] timer feature
 [/] recording progress meter
 [ ] progress aggregation logic
 [ ] cli framework
 */
+
 type Problem struct {
 	desc          string
 	sumType       string
@@ -34,16 +35,39 @@ type Problem struct {
 }
 
 func (problem *Problem) generateNumbers(d string) {
-	diff_level_map := map[string]int{
-		"LOW":    10000,
-		"MEDIUM": 100000,
-		"HIGH":   1000000,
-	}
-	greater := rand.Intn(diff_level_map[d]) + diff_level_map[d]/10
+	switch problem.sumType {
+	case "inr_to_usd":
+		problem.numbers = append(problem.numbers, float32(rand.Intn(1000)+100))
+		return
+	case "usd_to_inr":
+		problem.numbers = append(problem.numbers, float32(rand.Intn(1000)+100))
+		return
+	case "kms_to_miles":
+		problem.numbers = append(problem.numbers, float32(rand.Intn(100)+10))
+		return
+	case "miles_to_kms":
+		problem.numbers = append(problem.numbers, float32(rand.Intn(100)+10))
+		return
+	case "cms_to_inches":
+		problem.numbers = append(problem.numbers, float32(rand.Intn(100)+10))
+		return
+	case "inches_to_cms":
+		problem.numbers = append(problem.numbers, float32(rand.Intn(100)+10))
+		return
+	default:
+		diff_level_map := map[string]int{
+			"LOW":    10000,
+			"MEDIUM": 100000,
+			"HIGH":   1000000,
+		}
+		greater := rand.Intn(diff_level_map[d]) + diff_level_map[d]/10
 
-	smaller := rand.Intn(greater) + diff_level_map[d]/10
-	problem.numbers = append(problem.numbers, float32(smaller))
-	problem.numbers = append(problem.numbers, float32(greater))
+		smaller := rand.Intn(greater) + diff_level_map[d]/10
+		problem.numbers = append(problem.numbers, float32(smaller))
+		problem.numbers = append(problem.numbers, float32(greater))
+
+	}
+	return
 }
 
 func (problem *Problem) calculateAnswer() {
@@ -60,6 +84,30 @@ func (problem *Problem) calculateAnswer() {
 		break
 	case "div":
 		problem.correctAnswer = problem.numbers[1] / problem.numbers[0]
+		break
+	case "inr_to_usd":
+		problem.correctAnswer = problem.numbers[0] / 83
+		problem.desc += " 1 USD = 83 rupees"
+		break
+	case "usd_to_inr":
+		problem.correctAnswer = problem.numbers[0] * 83
+		problem.desc += " 1 USD = 83 rupees"
+		break
+	case "kms_to_miles":
+		problem.correctAnswer = problem.numbers[0] * 0.6
+		problem.desc += " 1 km = 0.6 miles"
+		break
+	case "miles_to_kms":
+		problem.correctAnswer = problem.numbers[0] * 1.6
+		problem.desc += " 1 mile = 1.6 kms"
+		break
+	case "cms_to_inches":
+		problem.correctAnswer = problem.numbers[0] * 0.4
+		problem.desc += " 1 cm = 0.4 in"
+		break
+	case "inches_to_cms":
+		problem.correctAnswer = problem.numbers[0] * 2.5
+		problem.desc += " 1 in = 2.5 cms"
 		break
 	default:
 		break
@@ -80,9 +128,6 @@ func (problem *Problem) print(i int) {
 	fmt.Println("Problem Data", i+1)
 	var symbol string
 	switch problem.sumType {
-	case "add":
-		symbol = "+"
-		break
 	case "sub":
 		symbol = "-"
 		break
@@ -92,18 +137,25 @@ func (problem *Problem) print(i int) {
 	case "div":
 		symbol = "/"
 		break
-
+	default:
+		break
 	}
-	fmt.Println(problem.numbers[1], symbol, problem.numbers[0])
+
+	if problem.sumType == "add" || problem.sumType == "sub" || problem.sumType == "mul" || problem.sumType == "div" {
+		fmt.Println(problem.numbers[1], symbol, problem.numbers[0])
+	} else {
+		fmt.Println(problem.desc)
+		fmt.Println(problem.numbers[0])
+	}
 }
 
 func (problem *Problem) store(i int, date string) {
 	dirName := "mentalist_progress"
 	err := os.Mkdir(dirName, 0755) // 0755 sets permissions (read, write, execute for owner; read, execute for group/others)
-	if err != nil {
-		fmt.Printf("Error creating directory: %v\n", err)
-		return
-	}
+	//if err != nil {
+	//	fmt.Printf("Error creating directory: %v\n", err)
+	//	return
+	//}
 
 	problemDict := make(map[string]any)
 	problemDict["desc"] = problem.desc
@@ -168,11 +220,40 @@ func (set *ProblemSet) generate() {
 	set.problems = append(set.problems, divProblem)
 
 	// generate currency conversions
+	currencyProblem := Problem{
+		desc:    "mEnTaLiSt INR to USD",
+		sumType: "inr_to_usd",
+	}
+	set.problems = append(set.problems, currencyProblem)
+
+	currencyProblemReverse := Problem{
+		desc:    "mEnTaLiSt USD to INR",
+		sumType: "usd_to_inr",
+	}
+	set.problems = append(set.problems, currencyProblemReverse)
 
 	// generate metric conversions
+	metricConversion := Problem{
+		desc:    "mEnTaLiSt kms to miles",
+		sumType: "kms_to_miles",
+	}
+	set.problems = append(set.problems, metricConversion)
+	metricConversionReverse := Problem{
+		desc:    "mEnTaLiSt miles to kms",
+		sumType: "miles_to_kms",
+	}
+	set.problems = append(set.problems, metricConversionReverse)
 
-	// generate exponents questions
-
+	metricConversion2 := Problem{
+		desc:    "mEnTaLiSt cms to inches",
+		sumType: "cms_to_inches",
+	}
+	set.problems = append(set.problems, metricConversion2)
+	metricConversion2Reverse := Problem{
+		desc:    "mEnTaLiSt inches to cms",
+		sumType: "inches_to_cms",
+	}
+	set.problems = append(set.problems, metricConversion2Reverse)
 }
 
 func (set *ProblemSet) print(d string) {
